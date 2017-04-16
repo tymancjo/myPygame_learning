@@ -18,6 +18,35 @@ BLUE = (0, 0, 255)
 game_folder = os.path.dirname(__file__)
 img_folder = os.path.join(game_folder, "img")
 
+class RollingBck(pygame.sprite.Sprite):
+
+    def __init__(self, picture, rollSpeed=1):
+
+        pygame.sprite.Sprite.__init__(self)
+
+        self.rollSpeed = rollSpeed
+
+        self.image1 = pygame.image.load(os.path.join(img_folder, picture)).convert()
+        self.bX, self.bY = self.image1.get_size()
+
+        self.image1 = pygame.transform.scale(self.image1, (2*self.bX, 2*self.bY))
+        self.bX, self.bY = self.image1.get_size()
+
+        self.image = pygame.Surface((self.bX*2, self.bY))
+        self.image.blit(self.image1, (0,0))
+        self.image.blit(self.image1, (self.bX,0))
+
+        self.rect = self.image.get_rect()
+        self.rect.x = 0
+        self.rect.y = 0
+
+        print(self.bX)
+
+    def update(self):
+        self.rect.x -= self.rollSpeed
+        if self.rect.x < -self.bX:
+            self.rect.x = 0
+
 
 class Player(pygame.sprite.Sprite):
     # sprite for the Player
@@ -46,7 +75,7 @@ class Player(pygame.sprite.Sprite):
             self.rect.y -= self.y_speed
 
             self.y_speed -= self.jumpHeight / 10
-            print(self.y_speed)
+
 
             if self.rect.y >= self.y_init:
                 self.y_speed = 0
@@ -94,10 +123,10 @@ class Mob(pygame.sprite.Sprite):
         # self.image = pygame.Surface((50, 50))
         # self.image.fill(RED)
         self.rect = self.image.get_rect()
-        self.rect.x = random.randrange(WIDTH - self.rect.width)
+        self.rect.x = random.randrange(WIDTH*1/4, 1.5*WIDTH)
         self.rect.y = random.randrange(-300, -120)
         self.speedy = random.randrange(1, 8)
-        self.speedx = random.randrange(-1, 1)
+        self.speedx = random.randrange(-10, -3)
         self.angle = random.randrange(-1,1)
 
     def update(self):
@@ -105,7 +134,7 @@ class Mob(pygame.sprite.Sprite):
         self.rect.y += self.speedy
         # self.image = pygame.transform.rotate(self.image, self.angle)
         if self.rect.top > HEIGHT + 10 or self.rect.left < -25 or self.rect.right > WIDTH + 20:
-            self.rect.x = random.randrange(WIDTH - self.rect.width)
+            self.rect.x = random.randrange(WIDTH*1/4, 1.5*WIDTH)
             self.rect.y = random.randrange(-100, -40)
             self.speedy = random.randrange(1, 8)
             picture = Mob.eggs[int(random.randrange(3))]
@@ -132,11 +161,12 @@ def scores(name1, name2,score1, score2, font):
 pygame.init()
 pygame.mixer.init()
 
-imgBck = pygame.image.load(os.path.join(img_folder, 'bck.png'))
+imgBck = pygame.image.load(os.path.join(img_folder, 'desert_BG.png'))
 imBx, imBy = imgBck.get_size()
 
-WIDTH = imBx
-HEIGHT = imBy
+
+WIDTH = 2*imBx
+HEIGHT = 2*imBy
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 font=pygame.font.Font(None,30)
@@ -146,16 +176,18 @@ clock = pygame.time.Clock()
 all_sprites = pygame.sprite.Group()
 mobs = pygame.sprite.Group()
 dzieci = pygame.sprite.Group()
+backgrounds = pygame.sprite.Group()
 
+mainBck = RollingBck('desert_BG.png',20)
+backgrounds.add(mainBck)
 
-
-tymek = Player('tymek.png', WIDTH*3/4, HEIGHT-30, kLEFT = pygame.K_a,
+tymek = Player('tymek.png', WIDTH*3/4, HEIGHT-100, kLEFT = pygame.K_a,
                 kRIGHT = pygame.K_d, kJUMP = pygame.K_w)
 all_sprites.add(tymek)
 dzieci.add(tymek)
 tymekCount = 0
 
-malwinka = Player('malwina.png',WIDTH /4, HEIGHT-30, kLEFT = pygame.K_LEFT,
+malwinka = Player('malwina.png',WIDTH /4, HEIGHT-100, kLEFT = pygame.K_LEFT,
                 kRIGHT = pygame.K_RIGHT, kJUMP = pygame.K_UP, jumpHeight = 65)
 all_sprites.add(malwinka)
 dzieci.add(malwinka)
@@ -196,19 +228,25 @@ while running:
         tymekCount += 1
 
     hitsGeneral = pygame.sprite.groupcollide(mobs, dzieci, True, False)
+    if hitsGeneral:
+        m = Mob()
+        all_sprites.add(m)
+        mobs.add(m)
 
-    # Draw / render
-    # screen.fill(BLUE)
 
-    if  tymekCount + malwinaCount < totalEggs:
+
+    if  tymekCount + malwinaCount < 10*totalEggs:
+        mainBck.update()
         all_sprites.update()
 
-        screen.blit(imgBck, (0,0))
+
+
+        backgrounds.draw(screen)
         all_sprites.draw(screen)
         scores('Malwinka','Tymek',malwinaCount,tymekCount,font)
 
     else:
-        screen.blit(imgBck, (0,0))
+        backgrounds.draw(screen)
         all_sprites.draw(screen)
         scores('Malwinka','Tymek',malwinaCount,tymekCount,font)
 
