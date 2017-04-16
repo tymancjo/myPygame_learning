@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Pygame sprite Example
 import pygame
 import random
@@ -20,19 +21,45 @@ img_folder = os.path.join(game_folder, "img")
 
 class Player(pygame.sprite.Sprite):
     # sprite for the Player
-    def __init__(self, picture, x=WIDTH / 2, y=HEIGHT / 2, kLEFT = pygame.K_LEFT, kRIGHT = pygame.K_RIGHT):
+    def __init__(self, picture, x=WIDTH / 2, y=HEIGHT / 2, kLEFT = pygame.K_LEFT,
+     kRIGHT = pygame.K_RIGHT, kJUMP = pygame.K_SPACE, jumpHeight = 50):
+
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load(os.path.join(img_folder, picture)).convert_alpha()
         self.rect = self.image.get_rect()
         self.rect.midbottom = (x, y)
-        self.y_speed = 5
+        self.y_speed = 0
         self.x_speed = 0
 
         self.kLEFT = kLEFT
         self.kRIGHT = kRIGHT
+        self.kJUMP = kJUMP
+
+        self.jump = False
+        self.jumpHeight = jumpHeight
+
+        self.y_init = self.rect.y
+
+    def jumpUp(self):
+
+        if self.jump:
+            self.rect.y -= self.y_speed
+
+            self.y_speed -= self.jumpHeight / 10
+            print(self.y_speed)
+
+            if self.rect.y >= self.y_init:
+                self.y_speed = 0
+                self.rect.y = self.y_init
+                self.jump = False
+        else:
+            keystate = pygame.key.get_pressed()
+            if keystate[self.kJUMP]:
+                self.jump = True
+                self.y_speed = self.jumpHeight
+
 
     def update(self):
-        # self.x_speed = 0
 
         keystate = pygame.key.get_pressed()
         if keystate[self.kLEFT]:
@@ -40,6 +67,9 @@ class Player(pygame.sprite.Sprite):
         if keystate[self.kRIGHT]:
             self.x_speed = 8
         self.rect.x += self.x_speed
+
+
+        self.jumpUp()
 
         if self.rect.right > WIDTH:
             self.rect.right = WIDTH
@@ -49,11 +79,7 @@ class Player(pygame.sprite.Sprite):
             self.rect.left = 0
             if self.x_speed < 0: self.x_speed *= -1
 
-        if self.rect.bottom > HEIGHT - 10:
-            self.y_speed *= -1
 
-        if self.rect.top < 10 and self.y_speed < 0:
-            self.y_speed *= -1
 
 class Mob(pygame.sprite.Sprite):
 
@@ -123,12 +149,14 @@ dzieci = pygame.sprite.Group()
 
 
 
-tymek = Player('tymek.png', WIDTH*3/4, HEIGHT-30, kLEFT = pygame.K_a, kRIGHT = pygame.K_d)
+tymek = Player('tymek.png', WIDTH*3/4, HEIGHT-30, kLEFT = pygame.K_a,
+                kRIGHT = pygame.K_d, kJUMP = pygame.K_w)
 all_sprites.add(tymek)
 dzieci.add(tymek)
 tymekCount = 0
 
-malwinka = Player('malwina.png',WIDTH /4, HEIGHT-50, kLEFT = pygame.K_LEFT, kRIGHT = pygame.K_RIGHT)
+malwinka = Player('malwina.png',WIDTH /4, HEIGHT-30, kLEFT = pygame.K_LEFT,
+                kRIGHT = pygame.K_RIGHT, kJUMP = pygame.K_UP, jumpHeight = 65)
 all_sprites.add(malwinka)
 dzieci.add(malwinka)
 malwinaCount = 0
@@ -174,13 +202,16 @@ while running:
 
     if  tymekCount + malwinaCount < totalEggs:
         all_sprites.update()
-        screen.blit(imgBck, (0,0))
 
+        screen.blit(imgBck, (0,0))
         all_sprites.draw(screen)
-        # *after* drawing everything, flip the display
         scores('Malwinka','Tymek',malwinaCount,tymekCount,font)
 
     else:
+        screen.blit(imgBck, (0,0))
+        all_sprites.draw(screen)
+        scores('Malwinka','Tymek',malwinaCount,tymekCount,font)
+
         if tymekCount < malwinaCount:
             wynik=font.render("KONIEC! Wygrała Malwinka!", 1,(255,255,255))
         elif tymekCount > malwinaCount:
@@ -190,7 +221,10 @@ while running:
         else:
             wynik=font.render("KONIEC! Naciśnij ESC aby wznowić", 1,(255,255,255))
 
+        scores('Malwinka','Tymek',malwinaCount,tymekCount,font)
         screen.blit(wynik, (WIDTH/2, 150))
+
+
 
         for mob in mobs.sprites():
             mob.kill()
