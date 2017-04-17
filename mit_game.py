@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # Pygame sprite Example
+# using sounds and music from Copyright/Attribution Notice: Snabisch
+
 import pygame
 import random
 import os
@@ -17,6 +19,9 @@ BLUE = (0, 0, 255)
 
 game_folder = os.path.dirname(__file__)
 img_folder = os.path.join(game_folder, "img")
+snd_dir = os.path.join(game_folder, "snd")
+
+
 
 class RollingBck(pygame.sprite.Sprite):
 
@@ -51,12 +56,16 @@ class RollingBck(pygame.sprite.Sprite):
 class Player(pygame.sprite.Sprite):
     # sprite for the Player
     def __init__(self, picture, x=WIDTH / 2, y=HEIGHT / 2, kLEFT = pygame.K_LEFT,
-     kRIGHT = pygame.K_RIGHT, kJUMP = pygame.K_SPACE, jumpHeight = 50):
+     kRIGHT = pygame.K_RIGHT, kJUMP = pygame.K_SPACE, jumpHeight = 50, sound=None):
 
         pygame.sprite.Sprite.__init__(self)
+
         self.image = pygame.image.load(os.path.join(img_folder, picture)).convert_alpha()
         self.rect = self.image.get_rect()
         self.rect.midbottom = (x, y)
+
+        self.sound = sound
+
         self.y_speed = 0
         self.x_speed = 0
 
@@ -84,6 +93,7 @@ class Player(pygame.sprite.Sprite):
         else:
             keystate = pygame.key.get_pressed()
             if keystate[self.kJUMP]:
+                self.sound.play()
                 self.jump = True
                 self.y_speed = self.jumpHeight
 
@@ -202,6 +212,9 @@ def scores(name1, name2,score1, score2, font):
 pygame.init()
 pygame.mixer.init()
 
+tymek_hop = pygame.mixer.Sound(os.path.join(snd_dir, 'tymek_hop.wav'))
+malwina_hop = pygame.mixer.Sound(os.path.join(snd_dir, 'malwina_hop.wav'))
+
 imgBck = pygame.image.load(os.path.join(img_folder, 'desert_BG.png'))
 imBx, imBy = imgBck.get_size()
 
@@ -227,13 +240,13 @@ Obstacle.loaddata()
 
 
 tymek = Player('tymek.png', WIDTH*0.4, HEIGHT-100, kLEFT = pygame.K_a,
-                kRIGHT = pygame.K_d, kJUMP = pygame.K_w)
+                kRIGHT = pygame.K_d, kJUMP = pygame.K_w, sound = tymek_hop)
 all_sprites.add(tymek)
 dzieci.add(tymek)
 tymekCount = 0
 
 malwinka = Player('malwina.png',WIDTH /4, HEIGHT-100, kLEFT = pygame.K_LEFT,
-                kRIGHT = pygame.K_RIGHT, kJUMP = pygame.K_UP, jumpHeight = 65)
+                kRIGHT = pygame.K_RIGHT, kJUMP = pygame.K_UP, jumpHeight = 65, sound = malwina_hop)
 all_sprites.add(malwinka)
 dzieci.add(malwinka)
 malwinaCount = 0
@@ -252,6 +265,9 @@ for i in range(4):
 
 
 # Game loop
+pygame.mixer.music.load(os.path.join(snd_dir, 'Yippee.ogg'))
+pygame.mixer.music.play(loops=-1)
+
 running = True
 while running:
     # keep loop running at the right speed
