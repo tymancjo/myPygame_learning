@@ -100,12 +100,12 @@ class Player(pygame.sprite.Sprite):
 
         self.jumpUp()
 
-        if self.rect.right > WIDTH:
-            self.rect.right = WIDTH
+        if self.rect.right > 0.75*WIDTH:
+            self.rect.right = 0.75*WIDTH
             if self.x_speed > 0: self.x_speed *= -1
 
-        if self.rect.left < 0:
-            self.rect.left = 0
+        if self.rect.left < 0.1 * WIDTH:
+            self.rect.left = 0.1 * WIDTH
             if self.x_speed < 0: self.x_speed *= -1
 
 
@@ -120,6 +120,7 @@ class Mob(pygame.sprite.Sprite):
 
         picture = Mob.eggs[int(random.randrange(3))]
         self.image = pygame.image.load(os.path.join(img_folder, picture)).convert_alpha()
+
         # self.image = pygame.Surface((50, 50))
         # self.image.fill(RED)
         self.rect = self.image.get_rect()
@@ -140,7 +141,47 @@ class Mob(pygame.sprite.Sprite):
             picture = Mob.eggs[int(random.randrange(3))]
             self.image = pygame.image.load(os.path.join(img_folder, picture)).convert_alpha()
 
+class Obstacle(pygame.sprite.Sprite):
 
+    images = []
+    faces =[]
+
+    @staticmethod
+    def loaddata():
+        Obstacle.faces = ['snake.png','rabbit.png','pig.png','hippo.png','elephant.png']
+        Obstacle.images =[]
+        for face in Obstacle.faces:
+                image = pygame.image.load(os.path.join(img_folder, face)).convert_alpha()
+                image = pygame.transform.scale(image, (100,100))
+                Obstacle.images.append(image)
+
+
+    def __init__(self):
+
+        pygame.sprite.Sprite.__init__(self)
+
+        # self.image = pygame.Surface((75, 75))
+        # self.image.fill(RED)
+
+
+        self.image = Obstacle.images[int(random.randrange(len(self.images)))]
+
+        self.rect = self.image.get_rect()
+
+        self.rect.x = random.randrange(WIDTH*1.5, 5*WIDTH)
+        self.rect.y = HEIGHT - 200 + random.randrange(-5,5)
+
+        self.speedy = 0
+        self.speedx = random.randrange(-10, -7)
+
+    def update(self):
+
+        self.rect.x += self.speedx
+
+        if self.rect.right < -20: #went off screen
+            self.rect.x = random.randrange(WIDTH*1.5, 5*WIDTH)
+            self.speedx = random.randrange(-15, -10)
+            self.rect.y = HEIGHT - 200 + random.randrange(-5,5)
 
 
 def scores(name1, name2,score1, score2, font):
@@ -177,11 +218,15 @@ all_sprites = pygame.sprite.Group()
 mobs = pygame.sprite.Group()
 dzieci = pygame.sprite.Group()
 backgrounds = pygame.sprite.Group()
+rollers = pygame.sprite.Group()
 
-mainBck = RollingBck('desert_BG.png',20)
+mainBck = RollingBck('desert_BG.png',10)
 backgrounds.add(mainBck)
 
-tymek = Player('tymek.png', WIDTH*3/4, HEIGHT-100, kLEFT = pygame.K_a,
+Obstacle.loaddata()
+
+
+tymek = Player('tymek.png', WIDTH*0.4, HEIGHT-100, kLEFT = pygame.K_a,
                 kRIGHT = pygame.K_d, kJUMP = pygame.K_w)
 all_sprites.add(tymek)
 dzieci.add(tymek)
@@ -199,6 +244,12 @@ for i in range(totalEggs+2):
     m = Mob()
     all_sprites.add(m)
     mobs.add(m)
+
+for i in range(4):
+    r = Obstacle()
+    rollers.add(r)
+    all_sprites.add(r)
+
 
 # Game loop
 running = True
@@ -233,21 +284,41 @@ while running:
         all_sprites.add(m)
         mobs.add(m)
 
+    hitsRollersM = pygame.sprite.spritecollide(malwinka, rollers, True)
+    if hitsRollersM:
+
+        malwinaCount += 5
+        # if malwinaCount < 0 : malwinaCount =0
+
+        r = Obstacle()
+        rollers.add(r)
+        all_sprites.add(r)
+
+    hitsRollersT = pygame.sprite.spritecollide(tymek, rollers, True)
+    if hitsRollersT:
+
+        tymekCount += 5
+        # if tymekCount < 0: tymekCount = 0
+
+        r = Obstacle()
+        rollers.add(r)
+        all_sprites.add(r)
+
 
 
     if  tymekCount + malwinaCount < 10*totalEggs:
         mainBck.update()
+
         all_sprites.update()
-
-
-
         backgrounds.draw(screen)
         all_sprites.draw(screen)
+
         scores('Malwinka','Tymek',malwinaCount,tymekCount,font)
 
     else:
         backgrounds.draw(screen)
         all_sprites.draw(screen)
+
         scores('Malwinka','Tymek',malwinaCount,tymekCount,font)
 
         if tymekCount < malwinaCount:
