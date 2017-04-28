@@ -222,6 +222,7 @@ imBx, imBy = imgBck.get_size()
 WIDTH = 2*imBx
 HEIGHT = 2*imBy
 
+# screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 font=pygame.font.Font(None,30)
 pygame.display.set_caption("My Game")
@@ -277,11 +278,11 @@ while running:
     for event in pygame.event.get():
         # check for closing window
         if event.type == pygame.QUIT:
+
             running = False
-
-
-
-
+    keystate = pygame.key.get_pressed()
+    if keystate[pygame.K_o]:
+        running = False
 
     # Update
 
@@ -362,6 +363,7 @@ while running:
                 mobs.add(m)
 
             malwinaCount, tymekCount = 0, 0
+
 
 
 
