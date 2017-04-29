@@ -2,17 +2,19 @@
 TITLE = "Jumpy!"
 WIDTH = 1280
 HEIGHT = 720
-FPS = 120
+FPS = 60
 FONT_NAME = 'arial'
 HS_FILE = "highscore.txt"
-SPRITESHEET = "bb8_pack.png"
+SPRITESHEET = "bb8_pack_scl.png"
+SHADOW = "shadow.png"
 BCK_IMAGE = "main_bck.png"
+FRT_IMAGE = "front.png"
 
 # Player properties
 PLAYER_ACC = 75
-PLAYER_FRICTION = -.1
+PLAYER_FRICTION = -.15
 PLAYER_GRAV = 0.8
-PLAYER_JUMP = 17
+PLAYER_JUMP = 25
 PLAYER_SPEED_TRESHOLD = 250
 PLAYER_SPEED_TRESHOLD_SLOW = 70
 

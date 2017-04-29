@@ -33,7 +33,9 @@ class Game:
                 self.highscore = 0
         # load spritesheet image
         self.spritesheet = Spritesheet(path.join(img_dir, SPRITESHEET))
+        self.shadow = path.join(img_dir, SHADOW)
         self.background = path.join(img_dir, BCK_IMAGE)
+        self.foreground = path.join(img_dir, FRT_IMAGE)
 
     def new(self):
         # start a new game
@@ -41,10 +43,20 @@ class Game:
         self.all_sprites = pg.sprite.Group()
         self.platforms = pg.sprite.Group()
         self.bck_01 = pg.sprite.Group()
+        self.frt_01 = pg.sprite.Group()
+        self.shad_01 = pg.sprite.Group()
+
         self.Bck = Bck(self, self.background)
         self.bck_01.add(self.Bck)
+
+        self.Frt = Front(self, self.foreground)
+        self.frt_01.add(self.Frt)
+
         self.player = Player(self)
         self.all_sprites.add(self.player)
+        self.pShadow = shadow(self, self.shadow)
+        self.shad_01.add(self.pShadow)
+
         for plat in PLATFORM_LIST:
             p = Platform(*plat)
             self.all_sprites.add(p)
@@ -89,10 +101,10 @@ class Game:
                 self.player.vel.y = 0
 
         # if player reaches top 1/4 of screen
-        if self.player.rect.top <= HEIGHT / 4:
-            self.player.pos.y += abs(self.player.vel.y)
-            for plat in self.platforms:
-                plat.rect.y += abs(self.player.vel.y)
+        # if self.player.rect.top <= HEIGHT / 4:
+        #     self.player.pos.y += abs(self.player.vel.y)
+        #     for plat in self.platforms:
+        #         plat.rect.y += abs(self.player.vel.y)
 
 
         # Die!
@@ -105,6 +117,8 @@ class Game:
             self.playing = False
 
         self.Bck.update()
+        self.shad_01.update()
+        self.frt_01.update()
 
     def events(self):
         # Game Loop - events
@@ -131,7 +145,10 @@ class Game:
         # self.screen.fill(BGCOLOR)
         # self.screen.blit(self.Bck.image, (-250, 0))
         self.bck_01.draw(self.screen)
+        self.shad_01.draw(self.screen)
         self.all_sprites.draw(self.screen)
+        self.frt_01.draw(self.screen)
+
         self.draw_text(str(self.score), 22, WHITE, WIDTH / 2, 15)
         # *after* drawing everything, flip the display
         pg.display.flip()

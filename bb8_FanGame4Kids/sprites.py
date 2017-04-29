@@ -33,12 +33,12 @@ class Player(pg.sprite.Sprite):
         self.acc = vec(0, 0)
 
     def load_images(self):
-        self.standing_frames = [self.game.spritesheet.get_image(365, 0, 535-365, 250)]
+        self.standing_frames = [self.game.spritesheet.get_image(285, 0, 399-285, 180)]
 
-        self.walk_frames_r = [self.game.spritesheet.get_image(535, 0, 705-535, 250),
-                              self.game.spritesheet.get_image(705, 0, 190, 250)]
-        self.walk_frames_l = [self.game.spritesheet.get_image(190, 0, 365-190, 250),
-                              self.game.spritesheet.get_image(0, 0, 190, 250)]
+        self.walk_frames_r = [self.game.spritesheet.get_image(414, 0, 530-414, 180),
+                              self.game.spritesheet.get_image(543, 0, 668-543, 180)]
+        self.walk_frames_l = [self.game.spritesheet.get_image(153, 0, 270-153, 180),
+                              self.game.spritesheet.get_image(10, 0, 136-10, 180)]
 
         self.jump_frame = self.standing_frames[0]
 
@@ -177,3 +177,34 @@ class Bck(pg.sprite.Sprite):
             self.endOfMap = True
         else:
             self.endOfMap = False
+
+class Front(pg.sprite.Sprite):
+    def __init__(self, game, filename):
+        pg.sprite.Sprite.__init__(self)
+        self.game = game
+        self.image = pg.image.load(filename).convert_alpha()
+        self.rect = self.image.get_rect()
+        self.rect.x = self.game.Bck.rect.x
+        self.rect.y = self.game.Bck.rect.y
+
+        self.width = self.rect.width
+
+    def update(self):
+        # Smoothing movement by making it a frame rate dependant
+        self.rect.x = self.game.Bck.rect.x
+        self.rect.y = self.game.Bck.rect.y
+        
+class shadow(pg.sprite.Sprite):
+    def __init__(self, game, filename):
+        pg.sprite.Sprite.__init__(self)
+        self.game = game
+        self.image = pg.image.load(filename).convert_alpha()
+        self.rect = self.image.get_rect()
+        self.rect.bottom = HEIGHT - 10
+        self.rect.x = self.game.player.rect.x
+        self.width = self.rect.width
+
+    def update(self):
+        # Smoothing movement by making it a frame rate dependant
+        self.rect.x = self.game.player.rect.x
+        self.image.set_alpha(256)
