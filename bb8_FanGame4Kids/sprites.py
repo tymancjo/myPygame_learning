@@ -80,18 +80,15 @@ class Player(pg.sprite.Sprite):
 
         # TODO: making possible to reach the map ends
         edgeDiv = 2
+        self.pos.x += dx
+        self.pos.y += dy
 
         # changing position only if we are in the middle zone
-        if self.pos.x + dx > self.rect.width / edgeDiv and\
-           self.pos.x + dx < WIDTH - self.rect.width / edgeDiv:
-           self.pos.x += dx
+        if self.pos.x < self.rect.width / edgeDiv:
+            self.pos.x = self.rect.width / edgeDiv
 
-        elif  self.game.Bck.endOfMap:
-            if self.rect.left > 0 and self.rect.right < WIDTH:
-                self.pos.x += dx
-
-
-        self.pos.y += dy
+        elif self.pos.x + dx > WIDTH - self.rect.width / edgeDiv:
+            self.pos.x = WIDTH - self.rect.width / edgeDiv
 
         self.rect.midbottom = self.pos
 
