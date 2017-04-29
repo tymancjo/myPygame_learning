@@ -15,7 +15,7 @@ class Game:
         # initialize game window, etc
         pg.init()
         pg.mixer.init()
-        self.screen = pg.display.set_mode((WIDTH, HEIGHT))
+        self.screen = pg.display.set_mode((WIDTH, HEIGHT), pg.HWSURFACE | pg.DOUBLEBUF)
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
         self.running = True
@@ -117,6 +117,14 @@ class Game:
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_SPACE:
                     self.player.jump()
+
+                if event.key == pg.K_ESCAPE:
+                    if self.playing:
+                        self.playing = False
+                    self.running = False
+                if event.key == pg.K_F11:
+                    pg.display.toggle_fullscreen()
+
 
     def draw(self):
         # Game Loop - draw

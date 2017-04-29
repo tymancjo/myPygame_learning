@@ -67,7 +67,7 @@ class Player(pg.sprite.Sprite):
             self.acc.x += self.vel.x * PLAYER_FRICTION
         # equations of motion
         self.vel += self.acc
-        if abs(self.vel.x) < 0.1:
+        if abs(self.vel.x) < 1:
             self.vel.x = 0
 
         # Oryginal movement
@@ -78,10 +78,18 @@ class Player(pg.sprite.Sprite):
         dx = self.vel.x * dt + 0.5 * self.acc.x * dt**2
         dy = self.vel.y
 
+        # TODO: making possible to reach the map ends
+        edgeDiv = 2
+
         # changing position only if we are in the middle zone
-        if self.pos.x + dx > self.rect.width / 2 and\
-           self.pos.x + dx < WIDTH - self.rect.width / 2:
-            self.pos.x += dx
+        if self.pos.x + dx > self.rect.width / edgeDiv and\
+           self.pos.x + dx < WIDTH - self.rect.width / edgeDiv:
+           self.pos.x += dx
+
+        elif  self.game.Bck.endOfMap:
+            if self.rect.left > 0 and self.rect.right < WIDTH:
+                self.pos.x += dx
+
 
         self.pos.y += dy
 
@@ -140,23 +148,35 @@ class Bck(pg.sprite.Sprite):
         self.width = self.rect.width
         self.game = game
         self.factor = 0.2
+        self.endOfMap = False
+
     def update(self):
         # Smoothing movement by making it a frame rate dependant
         dt = self.game.dt
         pX = self.game.player.pos.x
 
-        if pX - WIDTH / 2  > 0:
-            self.factor = 0.2 + 1.8 * ((pX - WIDTH / 2) / WIDTH)
-        else:
-            self.factor = 0.2 + 1.8 * ((WIDTH / 2 - pX) / WIDTH)
+        # Making the 'quasi oaralax' movement od the background
+        # It's based on the player vector of acc and vel and is
+        # adjusted depending on player on screen position
 
-        print(self.factor)
+        if pX - WIDTH / 2  > 0:
+            self.factor = 0.5 + 1 * ((pX - WIDTH / 2) / WIDTH)
+        else:
+            self.factor = 0.5 + 1 * ((WIDTH / 2 - pX) / WIDTH)
 
         self.rect.x -= self.factor * (self.game.player.vel.x * dt + 0.5 *
                                       self.game.player.acc.x * dt**2)
 
         if self.rect.x > 0:
             self.rect.x = 0
+            self.game.player.acc.x = 0
+            self.endOfMap = True
+        else:
+            self.endOfMap = False
 
         if self.rect.x < -self.rect.width + WIDTH:
             self.rect.x = -self.rect.width +WIDTH
+            self.game.player.acc.x = 0
+            self.endOfMap = True
+        else:
+            self.endOfMap = False
