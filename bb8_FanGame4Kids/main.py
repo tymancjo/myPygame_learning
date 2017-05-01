@@ -37,6 +37,7 @@ class Game:
         self.background = path.join(img_dir, BCK_IMAGE)
         self.foreground = path.join(img_dir, FRT_IMAGE)
         self.rocket = path.join(img_dir, ROCKET_IMAGE)
+        self.splash = path.join(img_dir, SPLASH_IMAGE)
 
         # MOBs pictures
         self.mobs_images = []
@@ -66,7 +67,7 @@ class Game:
         self.pShadow = shadow(self, self.shadow)
         self.shad_01.add(self.pShadow)
 
-        for m in range(5):
+        for m in range(8):
             mob = Mob(self)
             self.all_sprites.add(mob)
             self.mobs.add(mob)
@@ -87,6 +88,7 @@ class Game:
 
 
         self.run()
+
 
     def run(self):
         # Game Loop
@@ -116,7 +118,7 @@ class Game:
 
         mobsTouch = pg.sprite.spritecollide(self.player, self.mobs, True)
         if mobsTouch:
-            self.player.health -= 10
+            self.player.health -= 20
             self.score += 20
 
             if self.player.health <= 0:
@@ -125,7 +127,13 @@ class Game:
         rocketTouch = pg.sprite.groupcollide(self.shoots, self.mobs, True, True)
         if rocketTouch:
             self.score += 5
-            
+            # Spawn new mobs instead death one
+            for m in range(1):
+                mob = Mob(self)
+                self.all_sprites.add(mob)
+                self.mobs.add(mob)
+
+
 
         # Die!
         if self.player.rect.bottom > HEIGHT:
@@ -133,7 +141,7 @@ class Game:
                 sprite.rect.y -= max(self.player.vel.y, 10)
                 if sprite.rect.bottom < 0:
                     sprite.kill()
-        if len(self.platforms) == 0:
+        if len(self.mobs) == 0:
             self.playing = False
 
         self.Bck.update()
@@ -167,23 +175,41 @@ class Game:
 
     def draw(self):
         # Game Loop - draw
-        # self.screen.fill(BGCOLOR)
-        # self.screen.blit(self.Bck.image, (-250, 0))
         self.bck_01.draw(self.screen)
         self.shad_01.draw(self.screen)
         self.all_sprites.draw(self.screen)
         self.frt_01.draw(self.screen)
 
         self.draw_text(str(self.score), 22, WHITE, WIDTH / 2, 15)
+        self.draw_text('Enemy ships count: {}'.format(len(self.mobs)), 22, WHITE, WIDTH / 2, 35)
+        self.hud()
         # *after* drawing everything, flip the display
         pg.display.flip()
 
+    def hud(self):
+        healthWidth = int(230 * self.player.health / PLAYER_HEALT)
+        if self.player.health > 60:
+            col = GREEN
+        elif self.player.health > 30:
+            col = YELLOW
+        else:
+            col = RED
+
+        self.health_bar = pg.Rect(5, 8, healthWidth, 30)
+        pg.draw.rect(self.screen, col, self.health_bar)
+
+        self.draw_text('BB8 ENERGY: {}%'.format(self.player.health), 24,
+        BLACK, 120, 10)
+
     def show_start_screen(self):
         # game splash/start screen
-        self.screen.fill(BGCOLOR)
-        self.draw_text(TITLE, 48, WHITE, WIDTH / 2, HEIGHT / 4)
-        self.draw_text("Arrows to move, Space to jump", 22, WHITE, WIDTH / 2, HEIGHT / 2)
-        self.draw_text("Press a key to play", 22, WHITE, WIDTH / 2, HEIGHT * 3 / 4)
+        # self.screen.fill(BGCOLOR)
+        splashImg = pg.image.load(self.splash).convert()
+        self.screen.blit(splashImg, (0, 0))
+
+        self.draw_text(TITLE, 48, WHITE, WIDTH / 5, HEIGHT / 2)
+        self.draw_text("Arrows to move, Space to jump, B to shoot", 22, WHITE, WIDTH / 5, 100 + HEIGHT / 2)
+        self.draw_text("Press ENTER to play", 22, WHITE, WIDTH / 5, HEIGHT * 4 / 5)
         self.draw_text("High Score: " + str(self.highscore), 22, WHITE, WIDTH / 2, 15)
         pg.display.flip()
         self.wait_for_key()
@@ -195,7 +221,7 @@ class Game:
         self.screen.fill(BGCOLOR)
         self.draw_text("GAME OVER", 48, WHITE, WIDTH / 2, HEIGHT / 4)
         self.draw_text("Score: " + str(self.score), 22, WHITE, WIDTH / 2, HEIGHT / 2)
-        self.draw_text("Press a key to play again", 22, WHITE, WIDTH / 2, HEIGHT * 3 / 4)
+        self.draw_text("Press ENTER to play again", 22, WHITE, WIDTH / 2, HEIGHT * 3 / 4)
         if self.score > self.highscore:
             self.highscore = self.score
             self.draw_text("NEW HIGH SCORE!", 22, WHITE, WIDTH / 2, HEIGHT / 2 + 40)
@@ -204,6 +230,8 @@ class Game:
         else:
             self.draw_text("High Score: " + str(self.highscore), 22, WHITE, WIDTH / 2, HEIGHT / 2 + 40)
         pg.display.flip()
+
+        pg.time.wait(1200)
         self.wait_for_key()
 
     def wait_for_key(self):
@@ -215,7 +243,8 @@ class Game:
                     waiting = False
                     self.running = False
                 if event.type == pg.KEYUP:
-                    waiting = False
+                    if event.key == pg.K_RETURN:
+                        waiting = False
 
     def draw_text(self, text, size, color, x, y):
         font = pg.font.Font(self.font_name, size)

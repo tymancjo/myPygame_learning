@@ -1,6 +1,8 @@
 # Sprite classes for platform game
 import pygame as pg
 import random
+from math import atan, atan2, degrees, pi
+
 from settings import *
 vec = pg.math.Vector2
 
@@ -25,28 +27,30 @@ class Shoot(pg.sprite.Sprite):
         self.last_update = 0
         self.image = self.load_images()
         self.rect = self.image.get_rect()
+        self.rot = 0
 
         spanX = self.game.player.pos.x - self.game.Bck.pos.x
-        spanY = self.game.player.rect.top + self.rect.height
+        spanY = self.game.player.rect.bottom - self.rect.height
         spanVel = self.game.player.vel
         spanAccl = self.game.player.acc
 
         if spanVel.x < 0:
-            spanVelBulletX = spanVel.x - 2 * BULLET_VEL
+            spanVelBulletX = spanVel.x - 3 * BULLET_VEL
 
         elif spanVel.x == 0:
             spanVelBulletX =0
         else:
-            spanVelBulletX = spanVel.x + 2 * BULLET_VEL
+            spanVelBulletX = spanVel.x + 3 * BULLET_VEL
 
         self.rect.midbottom = (spanX, spanY)
         self.pos = vec(spanX, spanY)
 
-        self.vel = vec(2.5 * spanVel.x, -BULLET_VEL)
+        self.vel = vec(2.5 * spanVel.x, -0.25 * BULLET_VEL)
 
         self.acc = vec(0, -BULLET_ACC)
 
     def load_images(self):
+        self.initialImage = pg.image.load(self.game.rocket).convert_alpha()
         return pg.image.load(self.game.rocket).convert_alpha()
 
     def update(self):
@@ -60,7 +64,11 @@ class Shoot(pg.sprite.Sprite):
         self.pos.x += dx
         self.pos.y += dy
 
+        # calculating the required rotaion of image
 
+        self.rot = degrees(atan2(-dy, dx)) - 90
+
+        self.image = pg.transform.rotate(self.initialImage, self.rot)
         # Making the mob bouncing form the game area
         if self.rect.bottom < -5:
             self.kill()
@@ -81,16 +89,15 @@ class Mob(pg.sprite.Sprite):
         self.image = self.load_images()
         self.rect = self.image.get_rect()
 
-        spanX = random.randrange(0,self.game.Bck.width)
-        spanY = random.randrange(self.rect.height, HEIGHT - 100)
+        spanX = random.randrange(0, self.game.Bck.width)
+        self.spanY = random.randrange(self.rect.height, HEIGHT - 100)
 
-        self.rect.center = (spanX, spanY)
-        self.pos = vec(spanX, spanY
-        )
+        self.rect.center = (spanX + self.game.Bck.pos.x, -150)
+        self.pos = vec(spanX, -150)
 
         self.vel = vec(random.randrange(MOB_SPEED_L, MOB_SPEED_H), 0)
         self.vel = self.vel * random.choice([-1,1])
-        self.acc = vec(0, 0)
+        self.acc = vec(0, 0.2)
 
     def load_images(self):
         return pg.image.load(random.choice(self.game.mobs_images)).convert_alpha()
@@ -98,7 +105,14 @@ class Mob(pg.sprite.Sprite):
     def update(self):
 
         # General movement equation for update (simple)
+        if self.pos.y >= self.spanY:
+            self.acc.y = 0
+            self.vel.y = 0
+
+        self.vel += self.acc
+
         dt = self.game.dt
+
         dx = self.vel.x * dt + 0.5 * self.acc.x * dt**2
         dy = self.vel.y
 
@@ -108,7 +122,7 @@ class Mob(pg.sprite.Sprite):
         # Making the mob bouncing form the game area
         if self.rect.right - self.game.Bck.rect.x > self.game.Bck.width:
             self.vel.x *= -1
-            self.pos.x = self.game.Bck.rect.x + self.game.Bck.width - self.rect.width / 2
+            self.pos.x = self.game.Bck.width - self.rect.width / 2
 
         elif self.rect.left - self.game.Bck.rect.x < 0:
             self.vel.x *= -1
@@ -116,8 +130,9 @@ class Mob(pg.sprite.Sprite):
 
 
 
+        self.pos += self.game.Bck.pos
         self.rect.midbottom = self.pos
-
+        self.pos -= self.game.Bck.pos
 
 
 class Player(pg.sprite.Sprite):
@@ -184,7 +199,7 @@ class Player(pg.sprite.Sprite):
         dy = self.vel.y
 
         # TODO: making possible to reach the map ends
-        edgeDiv = 2
+        edgeDiv = 1
         self.pos.x += dx
         self.pos.y += dy
 

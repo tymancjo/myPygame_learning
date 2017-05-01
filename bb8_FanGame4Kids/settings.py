@@ -9,8 +9,9 @@ SPRITESHEET = "bb8_pack_scl.png"
 SHADOW = "shadow.png"
 BCK_IMAGE = "main_bck.png"
 FRT_IMAGE = "front.png"
-MOB_IMAGES = ['probe_droid.png', 'sith_probe.png']
+MOB_IMAGES = ['probe_droid.png', 'sith_probe.png', 'ds.png', 'sd.png', 'tie.png']
 ROCKET_IMAGE = 'rocket.png'
+SPLASH_IMAGE = 'splashscreen.png'
 
 # Player properties
 PLAYER_ACC = 75
@@ -20,7 +21,7 @@ PLAYER_JUMP = 25
 PLAYER_SPEED_TRESHOLD = 250
 PLAYER_SPEED_TRESHOLD_SLOW = 70
 PLAYER_HEALT = 100
-BULLET_ACC = 30
+BULLET_ACC = 10
 BULLET_VEL = 200
 PLAYER_HEALT = 100
 

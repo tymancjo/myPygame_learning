@@ -6,3 +6,6 @@ x: 190, 365, 535, 705
 285, 399
 414, 530
 543, 668
+
+bb8 spalsh
+https://www.youtube.com/watch?v=Xpwgy0JTvVo
