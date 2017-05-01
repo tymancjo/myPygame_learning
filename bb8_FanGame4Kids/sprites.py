@@ -1,5 +1,6 @@
 # Sprite classes for platform game
 import pygame as pg
+import random
 from settings import *
 vec = pg.math.Vector2
 
@@ -16,6 +17,109 @@ class Spritesheet:
         #                                    int(height / (height/150))))
         return image
 
+class Shoot(pg.sprite.Sprite):
+    def __init__(self, game):
+        pg.sprite.Sprite.__init__(self)
+        self.game = game
+        self.current_frame = 0
+        self.last_update = 0
+        self.image = self.load_images()
+        self.rect = self.image.get_rect()
+
+        spanX = self.game.player.pos.x - self.game.Bck.pos.x
+        spanY = self.game.player.rect.top + self.rect.height
+        spanVel = self.game.player.vel
+        spanAccl = self.game.player.acc
+
+        if spanVel.x < 0:
+            spanVelBulletX = spanVel.x - 2 * BULLET_VEL
+
+        elif spanVel.x == 0:
+            spanVelBulletX =0
+        else:
+            spanVelBulletX = spanVel.x + 2 * BULLET_VEL
+
+        self.rect.midbottom = (spanX, spanY)
+        self.pos = vec(spanX, spanY)
+
+        self.vel = vec(2.5 * spanVel.x, -BULLET_VEL)
+
+        self.acc = vec(0, -BULLET_ACC)
+
+    def load_images(self):
+        return pg.image.load(self.game.rocket).convert_alpha()
+
+    def update(self):
+        self.vel += self.acc
+
+        # General movement equation for update (simple)
+        dt = self.game.dt
+        dy = self.vel.y * dt + 0.5 * self.acc.y * dt**2
+        dx = self.vel.x * dt + 0.5 * self.acc.x * dt**2
+
+        self.pos.x += dx
+        self.pos.y += dy
+
+
+        # Making the mob bouncing form the game area
+        if self.rect.bottom < -5:
+            self.kill()
+
+        # converting to actual screen coordinates
+        self.pos += self.game.Bck.pos
+        # set for display
+        self.rect.midbottom = self.pos
+        # roll back to global
+        self.pos -= self.game.Bck.pos
+
+class Mob(pg.sprite.Sprite):
+    def __init__(self, game):
+        pg.sprite.Sprite.__init__(self)
+        self.game = game
+        self.current_frame = 0
+        self.last_update = 0
+        self.image = self.load_images()
+        self.rect = self.image.get_rect()
+
+        spanX = random.randrange(0,self.game.Bck.width)
+        spanY = random.randrange(self.rect.height, HEIGHT - 100)
+
+        self.rect.center = (spanX, spanY)
+        self.pos = vec(spanX, spanY
+        )
+
+        self.vel = vec(random.randrange(MOB_SPEED_L, MOB_SPEED_H), 0)
+        self.vel = self.vel * random.choice([-1,1])
+        self.acc = vec(0, 0)
+
+    def load_images(self):
+        return pg.image.load(random.choice(self.game.mobs_images)).convert_alpha()
+
+    def update(self):
+
+        # General movement equation for update (simple)
+        dt = self.game.dt
+        dx = self.vel.x * dt + 0.5 * self.acc.x * dt**2
+        dy = self.vel.y
+
+        self.pos.x += dx
+        self.pos.y += dy
+
+        # Making the mob bouncing form the game area
+        if self.rect.right - self.game.Bck.rect.x > self.game.Bck.width:
+            self.vel.x *= -1
+            self.pos.x = self.game.Bck.rect.x + self.game.Bck.width - self.rect.width / 2
+
+        elif self.rect.left - self.game.Bck.rect.x < 0:
+            self.vel.x *= -1
+            self.pos.x = self.game.Bck.rect.x + self.rect.width / 2
+
+
+
+        self.rect.midbottom = self.pos
+
+
+
 class Player(pg.sprite.Sprite):
     def __init__(self, game):
         pg.sprite.Sprite.__init__(self)
@@ -31,6 +135,7 @@ class Player(pg.sprite.Sprite):
         self.pos = vec(WIDTH / 2, HEIGHT / 2)
         self.vel = vec(0, 0)
         self.acc = vec(0, 0)
+        self.health = PLAYER_HEALT
 
     def load_images(self):
         self.standing_frames = [self.game.spritesheet.get_image(285, 0, 399-285, 180)]
@@ -141,6 +246,7 @@ class Bck(pg.sprite.Sprite):
         pg.sprite.Sprite.__init__(self)
         self.image = pg.image.load(filename).convert_alpha()
         self.rect = self.image.get_rect()
+        self.pos = vec(-300, 0)
         self.rect.x = -300
         self.width = self.rect.width
         self.game = game
@@ -152,9 +258,12 @@ class Bck(pg.sprite.Sprite):
         dt = self.game.dt
         pX = self.game.player.pos.x
 
-        # Making the 'quasi oaralax' movement od the background
+        # Making the 'quasi Paralax' movement od the background
         # It's based on the player vector of acc and vel and is
         # adjusted depending on player on screen position
+        self.pos.x = self.rect.topleft[0]
+        self.pos.y = self.rect.topleft[1]
+
 
         if pX - WIDTH / 2  > 0:
             self.factor = 0.5 + 1 * ((pX - WIDTH / 2) / WIDTH)
@@ -178,6 +287,7 @@ class Bck(pg.sprite.Sprite):
         else:
             self.endOfMap = False
 
+
 class Front(pg.sprite.Sprite):
     def __init__(self, game, filename):
         pg.sprite.Sprite.__init__(self)
@@ -193,7 +303,7 @@ class Front(pg.sprite.Sprite):
         # Smoothing movement by making it a frame rate dependant
         self.rect.x = self.game.Bck.rect.x
         self.rect.y = self.game.Bck.rect.y
-        
+
 class shadow(pg.sprite.Sprite):
     def __init__(self, game, filename):
         pg.sprite.Sprite.__init__(self)

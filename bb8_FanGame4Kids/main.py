@@ -31,11 +31,18 @@ class Game:
                 self.highscore = int(f.read())
             except:
                 self.highscore = 0
-        # load spritesheet image
+        # load spritesheet image and images
         self.spritesheet = Spritesheet(path.join(img_dir, SPRITESHEET))
         self.shadow = path.join(img_dir, SHADOW)
         self.background = path.join(img_dir, BCK_IMAGE)
         self.foreground = path.join(img_dir, FRT_IMAGE)
+        self.rocket = path.join(img_dir, ROCKET_IMAGE)
+
+        # MOBs pictures
+        self.mobs_images = []
+        for mi in MOB_IMAGES:
+            self.mobs_images.append(path.join(img_dir, mi))
+
 
     def new(self):
         # start a new game
@@ -45,6 +52,8 @@ class Game:
         self.bck_01 = pg.sprite.Group()
         self.frt_01 = pg.sprite.Group()
         self.shad_01 = pg.sprite.Group()
+        self.mobs = pg.sprite.Group()
+        self.shoots = pg.sprite.Group()
 
         self.Bck = Bck(self, self.background)
         self.bck_01.add(self.Bck)
@@ -56,6 +65,11 @@ class Game:
         self.all_sprites.add(self.player)
         self.pShadow = shadow(self, self.shadow)
         self.shad_01.add(self.pShadow)
+
+        for m in range(5):
+            mob = Mob(self)
+            self.all_sprites.add(mob)
+            self.mobs.add(mob)
 
         for plat in PLATFORM_LIST:
             p = Platform(*plat)
@@ -100,12 +114,18 @@ class Game:
                 self.player.pos.y = hits[0].rect.top + 10
                 self.player.vel.y = 0
 
-        # if player reaches top 1/4 of screen
-        # if self.player.rect.top <= HEIGHT / 4:
-        #     self.player.pos.y += abs(self.player.vel.y)
-        #     for plat in self.platforms:
-        #         plat.rect.y += abs(self.player.vel.y)
+        mobsTouch = pg.sprite.spritecollide(self.player, self.mobs, True)
+        if mobsTouch:
+            self.player.health -= 10
+            self.score += 20
 
+            if self.player.health <= 0:
+                self.playing = False
+
+        rocketTouch = pg.sprite.groupcollide(self.shoots, self.mobs, True, True)
+        if rocketTouch:
+            self.score += 5
+            
 
         # Die!
         if self.player.rect.bottom > HEIGHT:
@@ -138,6 +158,11 @@ class Game:
                     self.running = False
                 if event.key == pg.K_F11:
                     pg.display.toggle_fullscreen()
+
+                if event.key == pg.K_b:
+                    sht = Shoot(self)
+                    self.shoots.add(sht)
+                    self.all_sprites.add(sht)
 
 
     def draw(self):
