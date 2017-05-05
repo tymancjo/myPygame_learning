@@ -67,6 +67,8 @@ class Game:
         self.pShadow = shadow(self, self.shadow)
         self.shad_01.add(self.pShadow)
 
+        self.health_dt = 0
+
         for m in range(8):
             mob = Mob(self)
             self.all_sprites.add(mob)
@@ -107,6 +109,7 @@ class Game:
             pg.display.set_caption(title)
 
     def update(self):
+
         # Game Loop - Update
         self.all_sprites.update()
         # check if player hits a platform - only if falling
@@ -143,6 +146,16 @@ class Game:
                     sprite.kill()
         if len(self.mobs) == 0:
             self.playing = False
+
+        # Self healing procedure
+        if self.player.health < 100:
+            self.health_dt += self.dt
+            if self.health_dt > 2:
+                self.health_dt = 0
+                self.player.health += 1
+                if self.player.health > 100:
+                    self.player.health = 100
+
 
         self.Bck.update()
         self.shad_01.update()
